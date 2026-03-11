@@ -1,0 +1,101 @@
+/* Frontend-only CKEditor dark theme overrides for Game layout */
+
+body.game-theme .ck {
+    --ck-color-base-background: #0e1628;
+    --ck-color-base-foreground: #101a2f;
+    --ck-color-base-border: rgba(255, 255, 255, 0.12);
+    --ck-color-base-text: #e8efff;
+    --ck-color-text: #e8efff;
+    --ck-color-toolbar-background: #0f1a30;
+    --ck-color-toolbar-border: rgba(255, 255, 255, 0.12);
+    --ck-color-panel-background: #0f1a30;
+    --ck-color-panel-border: rgba(255, 255, 255, 0.12);
+    --ck-color-dropdown-panel-background: #0f1a30;
+    --ck-color-dropdown-panel-border: rgba(255, 255, 255, 0.12);
+    --ck-color-list-background: #0f1a30;
+    --ck-color-button-default-hover-background: rgba(255, 255, 255, 0.08);
+    --ck-color-button-default-active-background: rgba(255, 255, 255, 0.12);
+    --ck-color-button-on-background: rgba(255, 24, 72, 0.2);
+    --ck-color-button-on-color: #ffffff;
+    --ck-color-input-background: #0b1325;
+    --ck-color-input-border: rgba(255, 255, 255, 0.18);
+    --ck-color-input-text: #f0f5ff;
+    --ck-color-input-disabled-background: #0a1120;
+    --ck-color-input-disabled-text: #9aa9cb;
+    --ck-color-focus-border: #ff1848;
+    --ck-color-focus-outer-shadow: rgba(255, 24, 72, 0.28);
+}
+
+body.game-theme .ck.ck-editor__editable,
+body.game-theme .ck.ck-content {
+    background: #0b1325;
+    color: #e8efff;
+}
+
+body.game-theme .ck.ck-editor__editable.ck-focused {
+    box-shadow: 0 0 0 1px rgba(255, 24, 72, 0.5) inset;
+}
+
+body.game-theme .ck.ck-toolbar {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Keep CKEditor dialogs and media modals above layout layers/overlays */
+body.game-theme .ck.ck-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+}
+
+body.game-theme .ck.ck-dialog {
+    z-index: 2001;
+}
+
+body.game-theme .ck.ck-balloon-panel {
+    z-index: 2002;
+}
+
+body.game-theme .modal-backdrop {
+    z-index: 0 !important;
+}
+
+body.game-theme .modal {
+    position: fixed;
+    z-index: 2100 !important;
+}
+
+body.game-theme .modal-dialog {
+    margin: 1.75rem auto;
+}
+
+/* Specific fix for Ilch media picker modal used by CKEditor */
+body.game-theme.modal-open .game-shell {
+    overflow: visible;
+}
+
+body.game-theme #mediaModal {
+    z-index: 2140 !important;
+}
+
+body.game-theme #mediaModal .modal-dialog {
+    max-width: min(1200px, 96vw);
+    margin: 1.5rem auto;
+}
+
+body.game-theme #mediaModal .modal-content {
+    min-height: 78vh;
+    background: #0f1a30;
+}
+
+body.game-theme #mediaModal .modal-body {
+    padding: 0;
+    height: calc(78vh - 120px);
+}
+
+body.game-theme #mediaModal iframe {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    min-height: 100%;
+}
