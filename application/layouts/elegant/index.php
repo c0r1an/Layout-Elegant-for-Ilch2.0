@@ -7,8 +7,29 @@ $footerBlockThreeHtmlRaw = trim((string) $this->getLayoutSetting('footerBlockThr
 $footerBlockFourHtmlRaw = trim((string) $this->getLayoutSetting('footerBlockFourHtml'));
 $siteLogo = trim((string) $this->getLayoutSetting('siteLogo'));
 $pageHeroBackgroundImage = trim((string) $this->getLayoutSetting('pageHeroBackgroundImage'));
-$headerMainSticky = $this->getLayoutSetting('headerMainSticky') == 1;
-$showRootMenuItems = $this->getLayoutSetting('showRootMenuItems') == 1;
+
+$layoutAdvSettings = [];
+try {
+    // Read saved advanced layout settings directly so explicit "0" values are respected.
+    $layoutAdvSettings = (new \Modules\Admin\Mappers\LayoutAdvSettings())->getSettings($this->getLayoutKey());
+} catch (\Throwable $exception) {
+    $layoutAdvSettings = [];
+}
+
+$getLayoutSettingValue = function (string $key, string $fallback = '') use ($layoutAdvSettings): string {
+    if (isset($layoutAdvSettings[$key]) && $layoutAdvSettings[$key] instanceof \Modules\Admin\Models\LayoutAdvSettings) {
+        return (string) $layoutAdvSettings[$key]->getValue();
+    }
+
+    return $fallback;
+};
+
+$getLayoutSettingBool = function (string $key, string $fallback = '0') use ($getLayoutSettingValue): bool {
+    return $getLayoutSettingValue($key, $fallback) === '1';
+};
+
+$headerMainSticky = $getLayoutSettingBool('headerMainSticky', (string) $this->getLayoutSetting('headerMainSticky'));
+$showRootMenuItems = $getLayoutSettingBool('showRootMenuItems', (string) $this->getLayoutSetting('showRootMenuItems'));
 $request = $this->getRequest();
 $requestModule = strtolower((string) $request->getModuleName());
 $requestController = strtolower((string) $request->getControllerName());
@@ -42,9 +63,14 @@ $isElegantLandingPage = $requestModule === 'elegant'
     && ($requestAction === '' || $requestAction === 'index');
 $isLayoutHomePage = $isHomePage && !$isElegantLandingPage;
 
-$showSidebarGlobally = $this->getLayoutSetting('sidebarBoxes') == 1;
-$showSidebarOnHome = $this->getLayoutSetting('sidebarBoxesHome') == 1;
-$showSidebar = $showSidebarGlobally && (!$isLayoutHomePage || $showSidebarOnHome);
+$showSidebarGlobally = $getLayoutSettingBool('sidebarBoxes', (string) $this->getLayoutSetting('sidebarBoxes'));
+$showSidebarOnHome = $getLayoutSettingBool('sidebarBoxesHome', (string) $this->getLayoutSetting('sidebarBoxesHome'));
+$isElegantStartPageConfigured = in_array($startPage, ['module_elegant', 'layouts_elegant'], true);
+$basePath = rtrim((string) parse_url((string) $this->getUrl(), PHP_URL_PATH), '/');
+$currentPath = rtrim((string) parse_url((string) $this->getCurrentUrl(), PHP_URL_PATH), '/');
+$isRootRequest = $currentPath === $basePath || $currentPath === $basePath . '/index.php';
+$isSidebarHomeContext = $isHomePage || $isElegantLandingPage || ($isElegantStartPageConfigured && $isRootRequest);
+$showSidebar = $showSidebarGlobally && (!$isSidebarHomeContext || $showSidebarOnHome);
 $sidebarBoxes = $showSidebar ? trim($this->getMenu(2, '<section class="elegant-widget elegant-widget-boxes"><h3>%s</h3><div class="elegant-widget-body">%c</div></section>')) : '';
 $contentMarkup = (string) $this->getContent();
 $hasContent = trim(strip_tags($contentMarkup)) !== '';
@@ -306,7 +332,23 @@ $navHtml = $renderMenuBranch(0, true);
 
     <main class="elegant-main">
         <?php if ($isElegantLandingPage): ?>
-            <?=$contentMarkup ?>
+            <section class="elegant-content-zone">
+                <div class="elegant-container">
+                    <div class="elegant-columns<?=$hasSideColumn ? '' : ' elegant-columns-full' ?>">
+                        <div class="elegant-main-column">
+                            <?=$contentMarkup ?>
+                        </div>
+
+                        <?php if ($hasSideColumn): ?>
+                        <aside class="elegant-side-column">
+                            <?=$videoWidgetHtml ?>
+
+                            <?=$sidebarBoxes ?>
+                        </aside>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </section>
         <?php elseif ($isLayoutHomePage): ?>
             <?php if ($sliderBoxHtml !== ''): ?>
                 <?=$sliderBoxHtml ?>
