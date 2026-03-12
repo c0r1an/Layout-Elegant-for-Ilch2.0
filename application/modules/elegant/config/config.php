@@ -9,7 +9,7 @@ class Config extends \Ilch\Config\Install
 {
     public $config = [
         'key' => 'elegant',
-        'version' => '1.0.0',
+        'version' => '1.0.1',
         'icon_small' => 'fa-regular fa-gem',
         'author' => 'c0r1an',
         'link' => 'https://ilch.de',
