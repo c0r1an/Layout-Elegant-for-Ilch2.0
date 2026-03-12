@@ -12,7 +12,7 @@ class Config extends \Ilch\Config\Install
 {
     public $config = [
         'name' => 'Elegant*',
-        'version' => '1.0.1',
+        'version' => '1.0.2',
         'ilchCore' => '2.2.0',
         'author' => 'c0r1an',
         'link' => 'https://ilch.de',
