@@ -31,10 +31,20 @@ class Settings extends BaseAdmin
         $configClass = '\\Modules\\Elegant\\Config\\Config';
         $config = new $configClass();
         $settings = $config->getLayoutSettings();
+        $startPage = (string) $this->getConfig()->get('start_page');
+        $isElegantStartPage = in_array(strtolower($startPage), ['module_elegant', 'layouts_elegant'], true);
 
         $this->getLayout()->getTranslator()->load($layoutPath . '/translations/');
 
         $layoutAdvSettingsMapper = new LayoutAdvSettingsMapper();
+        if ($this->getRequest()->isPost() && (string) $this->getRequest()->getPost('setElegantAsStartPage') === '1') {
+            $this->getConfig()->set('start_page', 'module_elegant');
+            $this->redirect()
+                ->withMessage('startPageSetSuccess')
+                ->to(['action' => 'index']);
+            return;
+        }
+
         if ($this->getRequest()->isPost()) {
             $postedSettings = [];
             foreach ($settings as $key => $value) {
@@ -62,6 +72,8 @@ class Settings extends BaseAdmin
             'layoutKey' => self::LAYOUT_KEY,
             'settings' => $settings,
             'settingsValues' => $layoutAdvSettingsMapper->getSettings(self::LAYOUT_KEY),
+            'isElegantStartPage' => $isElegantStartPage,
+            'adminSettingsUrl' => $this->getLayout()->getBaseUrl('index.php/admin/admin/settings/index'),
         ]);
     }
 }

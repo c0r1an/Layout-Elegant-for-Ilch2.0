@@ -53,7 +53,7 @@ class Slider extends BaseBox
         $this->getView()->setArray([
             'sliderId' => 'elegantHeroSlider_' . $this->getUniqid(),
             'sliderAutoplay' => $this->boolSetting('sliderAutoplay'),
-            'sliderInterval' => max(2000, (int) $this->getLayout()->getLayoutSetting('sliderInterval')),
+            'sliderInterval' => max(2000, (int) $this->stringSetting('sliderInterval')),
             'sliderItems' => $sliderItems,
         ]);
     }

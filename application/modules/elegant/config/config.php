@@ -3,12 +3,13 @@
 namespace Modules\Elegant\Config;
 
 use Ilch\Config\Database;
+use Modules\Admin\Mappers\LayoutAdvSettings as LayoutAdvSettingsMapper;
 
 class Config extends \Ilch\Config\Install
 {
     public $config = [
         'key' => 'elegant',
-        'version' => '1.0.0',
+        'version' => '1.0.1',
         'icon_small' => 'fa-regular fa-gem',
         'author' => 'c0r1an',
         'link' => 'https://ilch.de',
@@ -63,6 +64,23 @@ class Config extends \Ilch\Config\Install
         ];
     }
 
+    /**
+     * @return string[]
+     */
+    public function getDefaultHomepageSectionKeys(): array
+    {
+        // Standardauswahl fuer Neuinstallationen.
+        return [
+            'slider',
+            'intro',
+            'featureCards',
+            'newsBox',
+            'videoWidget',
+            'contactWidget',
+            'socialWidget',
+        ];
+    }
+
     public function install()
     {
         $databaseConfig = new Database($this->db());
@@ -84,12 +102,18 @@ class Config extends \Ilch\Config\Install
             ->set('elegant_homepage_customcontent_width_4', '1')
             ->set('elegant_homepage_customcontent_width_5', '1')
             ->set('elegant_homepage_customcontent_width_6', '1')
-            ->set('elegant_homepage_sections', json_encode($this->getHomepageSectionKeys()));
+            ->set('elegant_homepage_sections', json_encode($this->getDefaultHomepageSectionKeys()));
     }
 
     public function uninstall()
     {
         $databaseConfig = new Database($this->db());
+        $startPage = strtolower((string) $databaseConfig->get('start_page'));
+
+        if (in_array($startPage, ['module_elegant', 'layouts_elegant'], true)) {
+            $databaseConfig->set('start_page', 'module_article');
+        }
+
         $databaseConfig->delete([
             'elegant_eyebrow',
             'elegant_headline',
@@ -110,6 +134,9 @@ class Config extends \Ilch\Config\Install
             'elegant_homepage_customcontent_width_6',
             'elegant_homepage_sections',
         ]);
+
+        // Remove persisted layout advanced settings so a reinstall starts with config defaults.
+        (new LayoutAdvSettingsMapper())->deleteSettings('elegant');
     }
 
     public function getUpdate(string $installedVersion): string
@@ -138,12 +165,12 @@ class Config extends \Ilch\Config\Install
             ],
             'siteTagline' => [
                 'type' => 'text',
-                'default' => 'A curated stage for your community',
+                'default' => 'Der perfekte Auftritt für dein deine Community',
                 'description' => '',
             ],
             'footerCopyright' => [
                 'type' => 'text',
-                'default' => 'Copyright {year} Elegant*',
+                'default' => '© {year} Elegant*',
                 'description' => '',
             ],
             'siteLogo' => [
@@ -188,7 +215,7 @@ class Config extends \Ilch\Config\Install
             ],
             'contentMaxWidth' => [
                 'type' => 'text',
-                'default' => '1480px',
+                'default' => '1440px',
                 'description' => '',
             ],
             'introSection' => [
@@ -207,12 +234,12 @@ class Config extends \Ilch\Config\Install
             ],
             'introTitle' => [
                 'type' => 'text',
-                'default' => '',
+                'default' => 'Willkommen zu Elegant*',
                 'description' => '',
             ],
             'introText' => [
                 'type' => 'textarea',
-                'default' => '',
+                'default' => 'Der perfekte Auftritt für dein deine Community',
                 'description' => '',
             ],
             'sliderSection' => [
@@ -241,22 +268,22 @@ class Config extends \Ilch\Config\Install
             ],
             'sliderTag1' => [
                 'type' => 'text',
-                'default' => "Editor's Choice",
+                'default' => 'Empfehlung',
                 'description' => '',
             ],
             'sliderTitle1' => [
                 'type' => 'text',
-                'default' => 'Build a refined home for your community stories',
+                'default' => 'Baue eine stilvolle Startseite für die Geschichten deiner Community',
                 'description' => '',
             ],
             'sliderText1' => [
                 'type' => 'textarea',
-                'default' => 'Elegant* keeps the full Game feature set but presents content in a calmer, premium editorial look.',
+                'default' => 'Elegant* bietet den vollen Ilch-Funktionsumfang, präsentiert Inhalte aber in einem ruhigeren, hochwertigen Editorial-Look.',
                 'description' => '',
             ],
             'sliderButtonLabel1' => [
                 'type' => 'text',
-                'default' => 'Discover more',
+                'default' => 'Mehr entdecken',
                 'description' => '',
             ],
             'sliderButtonUrl1' => [
@@ -276,22 +303,22 @@ class Config extends \Ilch\Config\Install
             ],
             'sliderTag2' => [
                 'type' => 'text',
-                'default' => 'Feature Story',
+                'default' => 'Titelstory',
                 'description' => '',
             ],
             'sliderTitle2' => [
                 'type' => 'text',
-                'default' => 'Give announcements a quieter, sharper stage',
+                'default' => 'Gib Ankündigungen eine ruhigere, präzisere Bühne',
                 'description' => '',
             ],
             'sliderText2' => [
                 'type' => 'textarea',
-                'default' => 'Use this slide for sponsor news, team updates or the next important release.',
+                'default' => 'Nutze diese Folie für Sponsor-News, Team-Updates oder das nächste wichtige Release.',
                 'description' => '',
             ],
             'sliderButtonLabel2' => [
                 'type' => 'text',
-                'default' => 'Open feature',
+                'default' => 'Beitrag öffnen',
                 'description' => '',
             ],
             'sliderButtonUrl2' => [
@@ -311,22 +338,22 @@ class Config extends \Ilch\Config\Install
             ],
             'sliderTag3' => [
                 'type' => 'text',
-                'default' => 'Spotlight',
+                'default' => 'Im Fokus',
                 'description' => '',
             ],
             'sliderTitle3' => [
                 'type' => 'text',
-                'default' => 'Present one message with more atmosphere',
+                'default' => 'Präsentiere eine Botschaft mit mehr Atmosphäre',
                 'description' => '',
             ],
             'sliderText3' => [
                 'type' => 'textarea',
-                'default' => 'The third slide is ideal for event trailers, premium posts or campaign highlights.',
+                'default' => 'Die dritte Folie eignet sich ideal für Event-Trailer, Premium-Beiträge oder Kampagnen-Highlights.',
                 'description' => '',
             ],
             'sliderButtonLabel3' => [
                 'type' => 'text',
-                'default' => 'Read article',
+                'default' => 'Artikel lesen',
                 'description' => '',
             ],
             'sliderButtonUrl3' => [
@@ -349,7 +376,7 @@ class Config extends \Ilch\Config\Install
             ],
             'platformCardsEnabled' => [
                 'type' => 'flipswitch',
-                'default' => '1',
+                'default' => '0',
                 'description' => '',
             ],
             'platformCardsVisibility' => [
@@ -371,7 +398,7 @@ class Config extends \Ilch\Config\Install
             ],
             'platformText1' => [
                 'type' => 'text',
-                'default' => 'Explore section',
+                'default' => 'Bereich öffnen',
                 'description' => '',
             ],
             'platformUrl1' => [
@@ -392,7 +419,7 @@ class Config extends \Ilch\Config\Install
             ],
             'platformText2' => [
                 'type' => 'text',
-                'default' => 'Explore section',
+                'default' => 'Bereich öffnen',
                 'description' => '',
             ],
             'platformUrl2' => [
@@ -413,7 +440,7 @@ class Config extends \Ilch\Config\Install
             ],
             'platformText3' => [
                 'type' => 'text',
-                'default' => 'Explore section',
+                'default' => 'Bereich öffnen',
                 'description' => '',
             ],
             'platformUrl3' => [
@@ -442,17 +469,17 @@ class Config extends \Ilch\Config\Install
             ],
             'card1Tag' => [
                 'type' => 'text',
-                'default' => 'New',
+                'default' => 'Neu',
                 'description' => '',
             ],
             'card1Title' => [
                 'type' => 'text',
-                'default' => 'Editorial card for your first highlight',
+                'default' => 'Editorial-Karte für dein erstes Highlight',
                 'description' => '',
             ],
             'card1Text' => [
                 'type' => 'textarea',
-                'default' => 'Use concise copy to guide visitors towards your most relevant content.',
+                'default' => 'Nutze prägnante Texte, um Besucher zu den relevantesten Inhalten zu führen.',
                 'description' => '',
             ],
             'card1Url' => [
@@ -472,17 +499,17 @@ class Config extends \Ilch\Config\Install
             ],
             'card2Tag' => [
                 'type' => 'text',
-                'default' => 'Feature',
+                'default' => 'Highlight',
                 'description' => '',
             ],
             'card2Title' => [
                 'type' => 'text',
-                'default' => 'A second card for a polished announcement',
+                'default' => 'Eine zweite Karte für eine elegante Ankündigung',
                 'description' => '',
             ],
             'card2Text' => [
                 'type' => 'textarea',
-                'default' => 'Pair a strong title with a short description and optional image.',
+                'default' => 'Kombiniere einen starken Titel mit kurzer Beschreibung und optionalem Bild.',
                 'description' => '',
             ],
             'card2Url' => [
@@ -507,12 +534,12 @@ class Config extends \Ilch\Config\Install
             ],
             'card3Title' => [
                 'type' => 'text',
-                'default' => 'Important news, releases and changelogs',
+                'default' => 'Wichtige News, Releases und Changelogs',
                 'description' => '',
             ],
             'card3Text' => [
                 'type' => 'textarea',
-                'default' => 'This slot works well for changelogs, patch notes or staff updates.',
+                'default' => 'Dieser Slot eignet sich für Changelogs, Patchnotes oder Team-Updates.',
                 'description' => '',
             ],
             'card3Url' => [
@@ -532,17 +559,17 @@ class Config extends \Ilch\Config\Install
             ],
             'card4Tag' => [
                 'type' => 'text',
-                'default' => 'Action',
+                'default' => 'Aktion',
                 'description' => '',
             ],
             'card4Title' => [
                 'type' => 'text',
-                'default' => 'Reserve one slot for campaigns and events',
+                'default' => 'Reserviere einen Slot für Kampagnen und Events',
                 'description' => '',
             ],
             'card4Text' => [
                 'type' => 'textarea',
-                'default' => 'Use this space for registrations, cup dates or community campaigns.',
+                'default' => 'Nutze diesen Bereich für Anmeldungen, Cup-Termine oder Community-Kampagnen.',
                 'description' => '',
             ],
             'card4Url' => [
@@ -571,7 +598,7 @@ class Config extends \Ilch\Config\Install
             ],
             'newsBoxTitle' => [
                 'type' => 'text',
-                'default' => 'Latest News',
+                'default' => 'Neueste News',
                 'description' => '',
             ],
             'videoWidgetSection' => [
@@ -590,7 +617,7 @@ class Config extends \Ilch\Config\Install
             ],
             'latestVideoTitle' => [
                 'type' => 'text',
-                'default' => 'Featured Reel',
+                'default' => 'Empfohlenes Video',
                 'description' => '',
             ],
             'latestVideoSource' => [
@@ -635,7 +662,7 @@ class Config extends \Ilch\Config\Install
             ],
             'socialWidgetTitle' => [
                 'type' => 'text',
-                'default' => 'House Links',
+                'default' => 'Community-Links',
                 'description' => '',
             ],
             'socialItem1Icon' => [
@@ -709,12 +736,12 @@ class Config extends \Ilch\Config\Install
             ],
             'footerBlockThreeHtml' => [
                 'type' => 'ckeditorhtml',
-                'default' => '<h3>Companion Module</h3><p>Use the attached Elegant* module for a dedicated landing page and direct admin access from the layout overview.</p><a class="elegant-text-link" href="index.php/elegant/index/index">Open module page</a>',
+                'default' => '<h3>Begleitmodul</h3><p>Nutze das verknüpfte Elegant*-Modul für eine eigene Landingpage und den direkten Admin-Zugriff aus der Layout-Übersicht.</p><a class="elegant-text-link" href="index.php/elegant/index/index">Modulseite öffnen</a>',
                 'description' => '',
             ],
             'footerBlockFourHtml' => [
                 'type' => 'ckeditorhtml',
-                'default' => '<h3>Layout Boxes</h3><p>Slider, platform cards, feature cards, social widget and video widget are now rendered as dedicated Elegant* boxes.</p>',
+                'default' => '<h3>Layout-Boxen</h3><p>Slider, Plattform-Karten, Feature-Karten, Social-Widget und Video-Widget werden jetzt als eigene Elegant*-Boxen gerendert.</p>',
                 'description' => '',
             ],
         ];

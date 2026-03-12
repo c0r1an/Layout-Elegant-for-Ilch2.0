@@ -6,9 +6,11 @@ class Index extends \Ilch\Controller\Frontend
 {
     public function indexAction()
     {
-        $homepageSectionKeys = (new \Modules\Elegant\Config\Config())->getHomepageSectionKeys();
+        $config = new \Modules\Elegant\Config\Config();
+        $homepageSectionKeys = $config->getHomepageSectionKeys();
+        $defaultSectionKeys = $config->getDefaultHomepageSectionKeys();
         $savedOrder = (string) $this->getConfig()->get('elegant_homepage_sections');
-        $activeSectionKeys = $this->normalizeSectionOrder($savedOrder, $homepageSectionKeys);
+        $activeSectionKeys = $this->normalizeSectionOrder($savedOrder, $homepageSectionKeys, $defaultSectionKeys);
         $sections = [];
 
         foreach ($activeSectionKeys as $sectionKey) {
@@ -67,8 +69,8 @@ class Index extends \Ilch\Controller\Frontend
 
         $this->getView()->setArray([
             'sections' => $sections,
-            'siteName' => (string) $this->getLayout()->getLayoutSetting('siteName'),
-            'siteTagline' => (string) $this->getLayout()->getLayoutSetting('siteTagline'),
+            'siteName' => $this->layoutSettingWithFallback('siteName', 'Elegant*'),
+            'siteTagline' => $this->layoutSettingWithFallback('siteTagline', ''),
             'eyebrow' => (string) $this->getConfig()->get('elegant_eyebrow'),
             'headline' => (string) $this->getConfig()->get('elegant_headline'),
             'text' => (string) $this->getConfig()->get('elegant_text'),
@@ -80,14 +82,15 @@ class Index extends \Ilch\Controller\Frontend
     /**
      * @param string $rawOrder
      * @param string[] $availableSectionKeys
+     * @param string[] $defaultSectionKeys
      * @return string[]
      */
-    private function normalizeSectionOrder(string $rawOrder, array $availableSectionKeys): array
+    private function normalizeSectionOrder(string $rawOrder, array $availableSectionKeys, array $defaultSectionKeys): array
     {
         $decoded = json_decode($rawOrder, true);
 
         if (!is_array($decoded)) {
-            return $availableSectionKeys;
+            $decoded = $defaultSectionKeys;
         }
 
         $normalized = [];
@@ -99,7 +102,7 @@ class Index extends \Ilch\Controller\Frontend
             }
         }
 
-        return $normalized === [] ? $availableSectionKeys : $normalized;
+        return $normalized;
     }
 
     private function renderHomepageBox(string $boxKey): string
@@ -114,5 +117,20 @@ class Index extends \Ilch\Controller\Frontend
     private function normalizeContentColumns(string $value): string
     {
         return in_array($value, ['1', '2', '3', '4'], true) ? $value : '1';
+    }
+
+    private function layoutSettingWithFallback(string $key, string $fallback = ''): string
+    {
+        try {
+            return (string) $this->getLayout()->getLayoutSetting($key);
+        } catch (\InvalidArgumentException $exception) {
+            $settings = (new \Modules\Elegant\Config\Config())->getLayoutSettings();
+
+            if (!empty($settings[$key]) && ($settings[$key]['type'] ?? '') !== 'separator') {
+                return (string) ($settings[$key]['default'] ?? $fallback);
+            }
+
+            return $fallback;
+        }
     }
 }

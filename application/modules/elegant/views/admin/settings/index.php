@@ -209,6 +209,22 @@ function renderLayoutSettingInput(string $name, array $value, array $settingsVal
     <?=$this->getTrans('moduleInfo') ?>
 </div>
 
+<?php if (!$this->get('isElegantStartPage')) : ?>
+    <div class="alert alert-warning">
+        <p class="mb-2"><?=$this->getTrans('startPageWarning') ?></p>
+        <p class="mb-3">
+            <a href="<?=$this->escape((string) $this->get('adminSettingsUrl')) ?>" target="_blank" rel="noopener">
+                <?=$this->getTrans('openGlobalSettings') ?>
+            </a>
+        </p>
+        <form method="post" class="d-inline">
+            <?=$this->getTokenField() ?>
+            <input type="hidden" name="setElegantAsStartPage" value="1">
+            <button type="submit" class="btn btn-warning btn-sm"><?=$this->getTrans('setAsStartPage') ?></button>
+        </form>
+    </div>
+<?php endif; ?>
+
 <form id="elegant-layout-settings" method="post">
     <?=$this->getTokenField() ?>
 

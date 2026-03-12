@@ -22,12 +22,13 @@ class Home extends BaseAdmin
 
         $config = new \Modules\Elegant\Config\Config();
         $availableSectionKeys = $config->getHomepageSectionKeys();
+        $defaultSectionKeys = $config->getDefaultHomepageSectionKeys();
         $sectionMeta = $this->getSectionMeta();
         $databaseConfig = $this->getConfig();
 
         if ($this->getRequest()->isPost()) {
             $postedOrder = (string) $this->getRequest()->getPost('homepageSections');
-            $normalizedOrder = $this->normalizeSectionOrder($postedOrder, $availableSectionKeys);
+            $normalizedOrder = $this->normalizeSectionOrder($postedOrder, $availableSectionKeys, $defaultSectionKeys);
             $databaseConfig->set(self::HOMEPAGE_CONFIG_KEY, json_encode($normalizedOrder));
 
             for ($contentIndex = 1; $contentIndex <= self::HOMEPAGE_CONTENT_COUNT; $contentIndex++) {
@@ -49,7 +50,7 @@ class Home extends BaseAdmin
         }
 
         $savedOrder = (string) $databaseConfig->get(self::HOMEPAGE_CONFIG_KEY);
-        $activeSectionKeys = $this->normalizeSectionOrder($savedOrder, $availableSectionKeys);
+        $activeSectionKeys = $this->normalizeSectionOrder($savedOrder, $availableSectionKeys, $defaultSectionKeys);
         $inactiveSectionKeys = array_values(array_diff($availableSectionKeys, $activeSectionKeys));
 
         $this->getView()->setArray([
@@ -70,14 +71,15 @@ class Home extends BaseAdmin
     /**
      * @param string $rawOrder
      * @param string[] $availableSectionKeys
+     * @param string[] $defaultSectionKeys
      * @return string[]
      */
-    private function normalizeSectionOrder(string $rawOrder, array $availableSectionKeys): array
+    private function normalizeSectionOrder(string $rawOrder, array $availableSectionKeys, array $defaultSectionKeys): array
     {
         $decoded = json_decode($rawOrder, true);
 
         if (!is_array($decoded)) {
-            return $availableSectionKeys;
+            $decoded = $defaultSectionKeys;
         }
 
         $normalized = [];
@@ -89,7 +91,7 @@ class Home extends BaseAdmin
             }
         }
 
-        return $normalized === [] ? $availableSectionKeys : $normalized;
+        return $normalized;
     }
 
     /**

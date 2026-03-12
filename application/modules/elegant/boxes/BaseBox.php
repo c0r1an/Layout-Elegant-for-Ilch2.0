@@ -44,12 +44,20 @@ abstract class BaseBox extends \Ilch\Box
 
     protected function stringSetting(string $key): string
     {
-        return trim((string) $this->getLayout()->getLayoutSetting($key));
+        try {
+            return trim((string) $this->getLayout()->getLayoutSetting($key));
+        } catch (\InvalidArgumentException $exception) {
+            return trim($this->getDefaultLayoutSettingValue($key));
+        }
     }
 
     protected function boolSetting(string $key): bool
     {
-        return $this->getLayout()->getLayoutSetting($key) == 1;
+        try {
+            return $this->getLayout()->getLayoutSetting($key) == 1;
+        } catch (\InvalidArgumentException $exception) {
+            return $this->getDefaultLayoutSettingValue($key) == '1';
+        }
     }
 
     protected function visibilitySetting(string $key, string $default = 'all'): string
@@ -73,11 +81,15 @@ abstract class BaseBox extends \Ilch\Box
 
     protected function shouldRenderHomepageSection(string $enabledKey, string $visibilityKey, string $default = 'all'): bool
     {
+        if (!$this->boolSetting($enabledKey)) {
+            return false;
+        }
+
         if ($this->isHomepageBuilderBox()) {
             return true;
         }
 
-        return $this->boolSetting($enabledKey) && $this->shouldRenderForVisibility($visibilityKey, $default);
+        return $this->shouldRenderForVisibility($visibilityKey, $default);
     }
 
     protected function assetUrl(string $value): string
@@ -93,5 +105,20 @@ abstract class BaseBox extends \Ilch\Box
         }
 
         return $this->getLayout()->getBaseUrl($value);
+    }
+
+    private function getDefaultLayoutSettingValue(string $key): string
+    {
+        static $settings = null;
+
+        if ($settings === null) {
+            $settings = (new \Modules\Elegant\Config\Config())->getLayoutSettings();
+        }
+
+        if (empty($settings[$key]) || ($settings[$key]['type'] ?? '') === 'separator') {
+            return '';
+        }
+
+        return (string) ($settings[$key]['default'] ?? '');
     }
 }
